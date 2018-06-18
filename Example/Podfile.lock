@@ -1,0 +1,27 @@
+PODS:
+  - FBSnapshotTestCase (2.1.4):
+    - FBSnapshotTestCase/SwiftSupport (= 2.1.4)
+  - FBSnapshotTestCase/Core (2.1.4)
+  - FBSnapshotTestCase/SwiftSupport (2.1.4):
+    - FBSnapshotTestCase/Core
+  - MDEasyCache (0.1.0)
+
+DEPENDENCIES:
+  - FBSnapshotTestCase
+  - MDEasyCache (from `../`)
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - FBSnapshotTestCase
+
+EXTERNAL SOURCES:
+  MDEasyCache:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  FBSnapshotTestCase: 094f9f314decbabe373b87cc339bea235a63e07a
+  MDEasyCache: 1ac02bde80866034baa5e1b38cd1746bea5ef484
+
+PODFILE CHECKSUM: 5a94570879a01bee192a38c1d3e86d3ce98cac88
+
+COCOAPODS: 1.5.3

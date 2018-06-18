@@ -1,0 +1,60 @@
+{
+  'version': 0,
+  'case-sensitive': 'false',
+  'roots': [
+    {
+      'type': 'directory',
+      'name': "/Users/lizitao/Desktop/MDEasyCache/MDEasyCache/Example/Build/Products/Debug-iphonesimulator/MDEasyCache/MDEasyCache.framework/Headers",
+      'contents': [
+        {
+          'type': 'file',
+          'name': "MDEasyCache-Swift.h",
+          'external-contents': "/Users/lizitao/Desktop/MDEasyCache/MDEasyCache/Example/Build/Products/Debug-iphonesimulator/MDEasyCache/MDEasyCache.framework/Headers/MDEasyCache-Swift.h"
+        },
+        {
+          'type': 'file',
+          'name': "MDEasyCache-umbrella.h",
+          'external-contents': "/Users/lizitao/Desktop/MDEasyCache/MDEasyCache/Example/Pods/Target Support Files/MDEasyCache/MDEasyCache-umbrella.h"
+        }
+      ]
+    },
+    {
+      'type': 'directory',
+      'name': "/Users/lizitao/Desktop/MDEasyCache/MDEasyCache/Example/Build/Products/Debug-iphonesimulator/MDEasyCache/MDEasyCache.framework/Modules",
+      'contents': [
+        {
+          'type': 'file',
+          'name': "module.modulemap",
+          'external-contents': "/Users/lizitao/Desktop/MDEasyCache/MDEasyCache/Example/Build/Intermediates/Pods.build/Debug-iphonesimulator/MDEasyCache.build/module.modulemap"
+        }
+      ]
+    },
+    {
+      'type': 'directory',
+      'name': "/Users/lizitao/Desktop/MDEasyCache/MDEasyCache/Example/Build/Products/Debug-iphonesimulator/Pods_MDEasyCache_Example.framework/Headers",
+      'contents': [
+        {
+          'type': 'file',
+          'name': "Pods-MDEasyCache_Example-umbrella.h",
+          'external-contents': "/Users/lizitao/Desktop/MDEasyCache/MDEasyCache/Example/Pods/Target Support Files/Pods-MDEasyCache_Example/Pods-MDEasyCache_Example-umbrella.h"
+        },
+        {
+          'type': 'file',
+          'name': "Pods_MDEasyCache_Example-Swift.h",
+          'external-contents': "/Users/lizitao/Desktop/MDEasyCache/MDEasyCache/Example/Build/Products/Debug-iphonesimulator/Pods_MDEasyCache_Example.framework/Headers/Pods_MDEasyCache_Example-Swift.h"
+        }
+      ]
+    },
+    {
+      'type': 'directory',
+      'name': "/Users/lizitao/Desktop/MDEasyCache/MDEasyCache/Example/Build/Products/Debug-iphonesimulator/Pods_MDEasyCache_Example.framework/Modules",
+      'contents': [
+        {
+          'type': 'file',
+          'name': "module.modulemap",
+          'external-contents': "/Users/lizitao/Desktop/MDEasyCache/MDEasyCache/Example/Build/Intermediates/Pods.build/Debug-iphonesimulator/Pods-MDEasyCache_Example.build/module.modulemap"
+        }
+      ]
+    }
+  ]
+}

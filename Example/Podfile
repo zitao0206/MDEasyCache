@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'MDEasyCache_Example' do
+  pod 'MDEasyCache', :path => '../'
+
+  target 'MDEasyCache_Tests' do
+    inherit! :search_paths
+
+    pod 'FBSnapshotTestCase'
+  end
+end
