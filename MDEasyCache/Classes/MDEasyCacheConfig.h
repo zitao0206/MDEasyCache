@@ -24,6 +24,6 @@ typedef NS_ENUM(NSInteger, MDEasyCacheType) {
 @property (nonatomic, assign) MDEasyCacheType cacheType;
 @property (nonatomic, strong) NSURL *pathURL;
 @property (nonatomic, copy) NSString *key;
-@property (nonatomic, assign) id object;
+@property (nonatomic, weak) id object;
 @property (nonatomic, assign) BOOL isImage;
 @end

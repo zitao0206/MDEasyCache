@@ -26,6 +26,7 @@ NSString * const MDEasyImageDiskCachePrefix = @"com.leon.mdeasycache.imagedisk";
 @property (strong, nonatomic, nonnull) NSMutableDictionary *memoryCache;
 @property (strong, nonatomic, nonnull) MDEasyCacheConfig *config;
 @property (strong, nonatomic, nonnull) NSFileManager *fm;
+@property (strong, nonatomic, nonnull) dispatch_queue_t cacheQueue;
 @end
 
 @implementation MDEasyCache
@@ -59,7 +60,8 @@ static dispatch_once_t onceToken;
 {
     if (self = [super init]) {
         _config = [[MDEasyCacheConfig alloc] init];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removeAllObjects) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
+        _cacheQueue = dispatch_queue_create("com.leon.mdeasycache", DISPATCH_QUEUE_SERIAL);
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(clearMemory) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
     }
     return self;
 }
@@ -77,20 +79,23 @@ static dispatch_once_t onceToken;
     } else {
         config.pathURL = [NSURL fileURLWithPath:MDDefaultCacheKeyPath(key)];
     }
-    [self.cacheConfig setObject:config forKey:key];
-    if (config.cacheType == MDEasyCacheTypeDefault) {
+    @synchronized(self) {
+        [self.cacheConfig setObject:config forKey:key];
         [self.memoryCache setObject:object forKey:key];
+    }
+//    dispatch_async(self.cacheQueue, ^{
         if (![self setObjectToDisk:object forKey:key]) {
+            config.pathURL = nil;
             NSLog(@"!!!Warning: Disk cache fail!!!");
         }
-    }
+//    });
 }
 
 - (void)setObject:(id<NSCoding>)object forKey:(NSString *)key completion:(void (^)(MDEasyCacheConfig *config))completion
 {
     NSObject *obj = (NSObject *)object;
     if (!obj) return;
-    MDEasyCacheConfig *config = self.config;
+    __block MDEasyCacheConfig *config = self.config;
     config.key = key;
     config.object = object;
     if ([obj isKindOfClass:[UIImage class]] || [obj isMemberOfClass:[UIImage class]]) {
@@ -99,16 +104,23 @@ static dispatch_once_t onceToken;
     } else {
         config.pathURL = [NSURL fileURLWithPath:MDDefaultCacheKeyPath(key)];
     }
-    if (completion) {
-        completion(config);
-    }
-    [self.cacheConfig setObject:config forKey:key];
-    if (config.cacheType == MDEasyCacheTypeDefault) {
+    @synchronized(self) {
+        [self.cacheConfig setObject:config forKey:key];
         [self.memoryCache setObject:object forKey:key];
-        if (![self setObjectToDisk:object forKey:key]) {
-            NSLog(@"!!!Warning: Disk cache fail!!!");
-        }
     }
+//    dispatch_async(self.cacheQueue, ^{
+//        @synchronized(self) {
+            if (![self setObjectToDisk:object forKey:key]) {
+                config.pathURL = nil;
+                NSLog(@"!!!Warning: Disk cache fail!!!");
+            }
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (completion) {
+                    completion(config);
+                }
+            });
+//        }
+//    });
 }
 
 - (BOOL)setObjectToDisk:(id<NSCoding>)object forKey:(NSString *)key
@@ -123,8 +135,24 @@ static dispatch_once_t onceToken;
         }
         NSData *imageData = [self md_imageData:(UIImage *)object];
         written = [self.fm createFileAtPath:MDImageDiskCacheKeyPath(key) contents:imageData attributes:nil];
+        //由于图片和文件存储在不同的目录，需要保持key值的互斥
+        if ([[NSFileManager defaultManager] fileExistsAtPath:MDDefaultCacheKeyPath(key)]) {
+            NSError *error = nil;
+            [[NSFileManager defaultManager] removeItemAtPath:MDDefaultCacheKeyPath(key) error:&error];
+            NSLog(@"%@",error);
+        }
+        
     } else {
+        if (![self.fm fileExistsAtPath:MDDefaultCachePath]) {
+            written = [self.fm createDirectoryAtPath:MDDefaultCachePath withIntermediateDirectories:YES attributes:nil error:NULL];
+        }
         written = [NSKeyedArchiver archiveRootObject:object toFile:MDDefaultCacheKeyPath(key)];
+        //由于图片和文件存储在不同的目录，需要保持key值的互斥
+        if ([[NSFileManager defaultManager] fileExistsAtPath:MDImageDiskCacheKeyPath(key)]) {
+            NSError *error = nil;
+            [[NSFileManager defaultManager] removeItemAtPath:MDImageDiskCacheKeyPath(key) error:&error];
+            NSLog(@"%@",error);
+        }
     }
     return written;
 }
@@ -134,10 +162,12 @@ static dispatch_once_t onceToken;
     if (key.length < 1) return nil;
     id object = nil;
     object = [self.memoryCache objectForKey:key];
-    if (!object) {
-        object = [self objectFromDiskForKey:key];
-        if (object) {
-            [self.memoryCache setObject:object forKey:key];
+    @synchronized(self) {
+        if (!object) {
+            object = [self objectFromDiskForKey:key];
+            if (object) {
+                [self.memoryCache setObject:object forKey:key];
+            }
         }
     }
     return object;
@@ -154,7 +184,6 @@ static dispatch_once_t onceToken;
             }
         } else {
             MDEasyCacheConfig *config = [MDEasyCacheConfig new];
-            config.cacheType = MDEasyCacheTypeDefault;
             config.key = key;
             config.object = [self objectFromDiskForKey:key];
             config.pathURL = [NSURL fileURLWithPath:MDDefaultCacheKeyPath(key)];
@@ -200,9 +229,11 @@ static dispatch_once_t onceToken;
 - (void)removeObjectForKey:(nonnull NSString *)key
 {
     if (key.length < 1) return;
-    [self.memoryCache removeObjectForKey:key];
-    [self removeObjectFromDiskForKey:key];
-    [self.cacheConfig removeObjectForKey:key];
+    @synchronized(self) {
+        [self.memoryCache removeObjectForKey:key];
+        [self removeObjectFromDiskForKey:key];
+        [self.cacheConfig removeObjectForKey:key];
+    }
 }
 
 - (void)removeObjectFromDiskForKey:(NSString *)key
@@ -213,9 +244,29 @@ static dispatch_once_t onceToken;
     NSLog(@"%@",error);
 }
 
-- (void)removeAllObjects
+- (void)clearMemory
 {
-    [self.memoryCache removeAllObjects];
+    @synchronized(self) {
+        [self.memoryCache removeAllObjects];
+        [self.cacheConfig removeAllObjects];
+    }
+}
+
+- (void)clearDisk
+{
+    NSError *error1 = nil;
+    [[NSFileManager defaultManager] removeItemAtPath:MDDefaultCachePath error:&error1];
+    NSError *error2 = nil;
+    [[NSFileManager defaultManager] removeItemAtPath:MDImageDiskCachePath error:&error2];
+    if (error1 || error2 ) {
+        NSLog(@"%@",error1);
+        NSLog(@"%@",error2);
+    }
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (nullable NSData *)md_imageData:(UIImage *)image
