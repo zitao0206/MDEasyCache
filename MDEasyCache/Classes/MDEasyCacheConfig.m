@@ -16,6 +16,7 @@
         _pathURL = nil;
         _key = nil;
         _object = nil;
+        _isImage = NO;
     }
     return self;
 }
