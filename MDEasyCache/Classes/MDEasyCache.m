@@ -30,29 +30,14 @@ NSString * const MDEasyImageDiskCachePrefix = @"com.leon.mdeasycache.imagedisk";
 @end
 
 @implementation MDEasyCache
-static MDEasyCache *easyCache;
-static dispatch_once_t onceToken;
 
+static MDEasyCache *easyCache;
 + (instancetype)easyCache
 {
-    return [[self alloc] init];
-}
-
-+ (instancetype)allocWithZone:(struct _NSZone *)zone
-{
+    static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        easyCache = [super allocWithZone:zone];
+        easyCache = [[self alloc] init];
     });
-    return easyCache;
-}
-
-- (instancetype)copyWithZone:(NSZone *)zone
-{
-    return easyCache;
-}
-
-- (instancetype)mutableCopyWithZone:(NSZone *)zone
-{
     return easyCache;
 }
 
@@ -68,59 +53,58 @@ static dispatch_once_t onceToken;
 
 - (void)setObject:(id<NSCoding>)object forKey:(NSString *)key
 {
-    NSObject *obj = (NSObject *)object;
-    if (!obj) return;
-    MDEasyCacheConfig *config = self.config;
-    config.key = key;
-    config.object = object;
-    if ([obj isKindOfClass:[UIImage class]] || [obj isMemberOfClass:[UIImage class]]) {
-        config.isImage = YES;
-        config.pathURL = [NSURL fileURLWithPath:MDImageDiskCacheKeyPath(key)];
-    } else {
-        config.pathURL = [NSURL fileURLWithPath:MDDefaultCacheKeyPath(key)];
-    }
     @synchronized(self) {
-        [self.cacheConfig setObject:config forKey:key];
-        [self.memoryCache setObject:object forKey:key];
-    }
-//    dispatch_async(self.cacheQueue, ^{
-        if (![self setObjectToDisk:object forKey:key]) {
-            config.pathURL = nil;
-            NSLog(@"!!!Warning: Disk cache fail!!!");
+        NSObject *obj = (NSObject *)object;
+        if (!obj) return;
+        MDEasyCacheConfig *config = self.config;
+        config.key = key;
+        config.object = object;
+        if ([obj isKindOfClass:[UIImage class]] || [obj isMemberOfClass:[UIImage class]]) {
+            config.isImage = YES;
+            config.pathURL = [NSURL fileURLWithPath:MDImageDiskCacheKeyPath(key)];
+        } else {
+            config.pathURL = [NSURL fileURLWithPath:MDDefaultCacheKeyPath(key)];
         }
-//    });
-}
-
-- (void)setObject:(id<NSCoding>)object forKey:(NSString *)key completion:(void (^)(MDEasyCacheConfig *config))completion
-{
-    NSObject *obj = (NSObject *)object;
-    if (!obj) return;
-    __block MDEasyCacheConfig *config = self.config;
-    config.key = key;
-    config.object = object;
-    if ([obj isKindOfClass:[UIImage class]] || [obj isMemberOfClass:[UIImage class]]) {
-        config.isImage = YES;
-        config.pathURL = [NSURL fileURLWithPath:MDImageDiskCacheKeyPath(key)];
-    } else {
-        config.pathURL = [NSURL fileURLWithPath:MDDefaultCacheKeyPath(key)];
-    }
-    @synchronized(self) {
         [self.cacheConfig setObject:config forKey:key];
         [self.memoryCache setObject:object forKey:key];
-    }
-//    dispatch_async(self.cacheQueue, ^{
-//        @synchronized(self) {
+        dispatch_async(self.cacheQueue, ^{
             if (![self setObjectToDisk:object forKey:key]) {
                 config.pathURL = nil;
                 NSLog(@"!!!Warning: Disk cache fail!!!");
             }
+        });
+    }
+}
+
+- (void)setObject:(id<NSCoding>)object forKey:(NSString *)key completion:(void (^)(MDEasyCacheConfig *config))completion
+{
+    @synchronized(self) {
+        NSObject *obj = (NSObject *)object;
+        if (!obj) return;
+        __block MDEasyCacheConfig *config = self.config;
+        config.key = key;
+        config.object = object;
+        if ([obj isKindOfClass:[UIImage class]] || [obj isMemberOfClass:[UIImage class]]) {
+            config.isImage = YES;
+            config.pathURL = [NSURL fileURLWithPath:MDImageDiskCacheKeyPath(key)];
+        } else {
+            config.pathURL = [NSURL fileURLWithPath:MDDefaultCacheKeyPath(key)];
+        }
+        [self.cacheConfig setObject:config forKey:key];
+        [self.memoryCache setObject:object forKey:key];
+    
+        dispatch_async(self.cacheQueue, ^{
+            if (![self setObjectToDisk:object forKey:key]) {
+                config.pathURL = nil;
+                NSLog(@"!!!Warning: Disk cache fail!!!");
             dispatch_async(dispatch_get_main_queue(), ^{
                 if (completion) {
                     completion(config);
                 }
             });
-//        }
-//    });
+            }
+        });
+    }
 }
 
 - (BOOL)setObjectToDisk:(id<NSCoding>)object forKey:(NSString *)key
@@ -161,8 +145,8 @@ static dispatch_once_t onceToken;
 {
     if (key.length < 1) return nil;
     id object = nil;
-    object = [self.memoryCache objectForKey:key];
     @synchronized(self) {
+        object = [self.memoryCache objectForKey:key];
         if (!object) {
             object = [self objectFromDiskForKey:key];
             if (object) {
@@ -176,20 +160,22 @@ static dispatch_once_t onceToken;
 - (id)objectForKey:(NSString *)key completion:(void (^)(MDEasyCacheConfig *config))completion
 {
     id object = [self objectForKey:key];
-    MDEasyCacheConfig *config = [self.cacheConfig objectForKey:key];
-    if (object) {
-        if (config) {
-            if (completion) {
-                completion(config);
-            }
-        } else {
-            MDEasyCacheConfig *config = [MDEasyCacheConfig new];
-            config.key = key;
-            config.object = [self objectFromDiskForKey:key];
-            config.pathURL = [NSURL fileURLWithPath:MDDefaultCacheKeyPath(key)];
-            if (config.object) {
+    @synchronized(self) {
+        MDEasyCacheConfig *config = [self.cacheConfig objectForKey:key];
+        if (object) {
+            if (config) {
                 if (completion) {
                     completion(config);
+                }
+            } else {
+                MDEasyCacheConfig *config = [MDEasyCacheConfig new];
+                config.key = key;
+                config.object = [self objectFromDiskForKey:key];
+                config.pathURL = [NSURL fileURLWithPath:MDDefaultCacheKeyPath(key)];
+                if (config.object) {
+                    if (completion) {
+                        completion(config);
+                    }
                 }
             }
         }
