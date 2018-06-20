@@ -32,6 +32,7 @@ NSString * const MDEasyImageDiskCachePrefix = @"com.leon.mdeasycache.imagedisk";
 @implementation MDEasyCache
 
 static MDEasyCache *easyCache;
+
 + (instancetype)easyCache
 {
     static dispatch_once_t onceToken;
@@ -47,6 +48,7 @@ static MDEasyCache *easyCache;
         _config = [[MDEasyCacheConfig alloc] init];
         _cacheQueue = dispatch_queue_create("com.leon.mdeasycache", DISPATCH_QUEUE_SERIAL);
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(clearMemory) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(clearMemory) name:UIApplicationDidEnterBackgroundNotification object:nil];
     }
     return self;
 }
