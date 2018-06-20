@@ -58,6 +58,7 @@ static MDEasyCache *easyCache;
     @synchronized(self) {
         NSObject *obj = (NSObject *)object;
         if (!obj) return;
+        if (![self isConformsCodingProtocol:obj]) return;
         MDEasyCacheConfig *config = self.config;
         config.key = key;
         config.object = object;
@@ -87,6 +88,7 @@ static MDEasyCache *easyCache;
     @synchronized(self) {
         NSObject *obj = (NSObject *)object;
         if (!obj) return;
+        if (![self isConformsCodingProtocol:obj]) return;
         __block MDEasyCacheConfig *config = self.config;
         config.key = key;
         config.object = object;
@@ -149,6 +151,15 @@ static MDEasyCache *easyCache;
         }
     }
     return written;
+}
+
+- (BOOL)isConformsCodingProtocol:(NSObject *)obj
+{
+    if ([obj conformsToProtocol:@protocol(NSCoding)] && [obj respondsToSelector:@selector(encodeWithCoder:)] && [obj respondsToSelector:@selector(initWithCoder:)]) {
+        return YES;
+    }
+    NSLog(@"！！！Warning: not conform NSCoding！！！");
+    return NO;
 }
 
 - (id)objectForKey:(NSString *)key
