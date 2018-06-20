@@ -70,9 +70,13 @@ static MDEasyCache *easyCache;
         [self.cacheConfig setObject:config forKey:key];
         [self.memoryCache setObject:object forKey:key];
         dispatch_async(self.cacheQueue, ^{
-            if (![self setObjectToDisk:object forKey:key]) {
-                config.pathURL = nil;
-                NSLog(@"!!!Warning: Disk cache fail!!!");
+            @synchronized(self) {
+                if (![self setObjectToDisk:object forKey:key]) {
+                    config.pathURL = nil;
+                    NSLog(@"!!!Warning: Disk cache fail!!!");
+                } else {
+                    NSLog(@"Disk cache success: %@",config.pathURL);
+                }
             }
         });
     }
@@ -96,14 +100,18 @@ static MDEasyCache *easyCache;
         [self.memoryCache setObject:object forKey:key];
     
         dispatch_async(self.cacheQueue, ^{
-            if (![self setObjectToDisk:object forKey:key]) {
-                config.pathURL = nil;
-                NSLog(@"!!!Warning: Disk cache fail!!!");
-            dispatch_async(dispatch_get_main_queue(), ^{
-                if (completion) {
-                    completion(config);
+            @synchronized(self) {
+                if (![self setObjectToDisk:object forKey:key]) {
+                    config.pathURL = nil;
+                    NSLog(@"!!!Warning: Disk cache fail!!!");
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        if (completion) {
+                            completion(config);
+                        }
+                    });
+                } else {
+                    NSLog(@"Disk cache success: %@",config.pathURL);
                 }
-            });
             }
         });
     }
@@ -117,7 +125,7 @@ static MDEasyCache *easyCache;
     BOOL written = NO;
     if ([obj isKindOfClass:[UIImage class]] || [obj isMemberOfClass:[UIImage class]]) {
         if (![self.fm fileExistsAtPath:MDImageDiskCachePath]) {
-         written = [self.fm createDirectoryAtPath:MDImageDiskCachePath withIntermediateDirectories:YES attributes:nil error:NULL];
+            written = [self.fm createDirectoryAtPath:MDImageDiskCachePath withIntermediateDirectories:YES attributes:nil error:NULL];
         }
         NSData *imageData = [self md_imageData:(UIImage *)object];
         written = [self.fm createFileAtPath:MDImageDiskCacheKeyPath(key) contents:imageData attributes:nil];
@@ -242,13 +250,19 @@ static MDEasyCache *easyCache;
 
 - (void)clearDisk
 {
-    NSError *error1 = nil;
-    [[NSFileManager defaultManager] removeItemAtPath:MDDefaultCachePath error:&error1];
-    NSError *error2 = nil;
-    [[NSFileManager defaultManager] removeItemAtPath:MDImageDiskCachePath error:&error2];
-    if (error1 || error2 ) {
-        NSLog(@"%@",error1);
-        NSLog(@"%@",error2);
+    @synchronized(self) {
+        NSError *error1 = nil;
+        if ([self.fm fileExistsAtPath:MDDefaultCachePath]) {
+            [[NSFileManager defaultManager] removeItemAtPath:MDDefaultCachePath error:&error1];
+        }
+        NSError *error2 = nil;
+        if ([self.fm fileExistsAtPath:MDImageDiskCachePath]) {
+            [[NSFileManager defaultManager] removeItemAtPath:MDImageDiskCachePath error:&error2];
+        }
+        if (error1 || error2 ) {
+            NSLog(@"%@",error1);
+            NSLog(@"%@",error2);
+        }
     }
 }
 
