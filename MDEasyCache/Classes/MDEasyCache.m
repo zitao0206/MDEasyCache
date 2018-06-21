@@ -22,7 +22,6 @@ NSString * const MDEasyImageDiskCachePrefix = @"com.leon.mdeasycache.imagedisk";
 
 @interface MDEasyCache ()
 @property (strong, nonatomic, nonnull) NSMutableDictionary *cacheConfig;
-@property (strong, nonatomic, nonnull) NSMutableDictionary *autoCache;
 @property (strong, nonatomic, nonnull) NSMutableDictionary *memoryCache;
 @property (strong, nonatomic, nonnull) MDEasyCacheConfig *config;
 @property (strong, nonatomic, nonnull) NSFileManager *fm;
@@ -58,7 +57,7 @@ static MDEasyCache *easyCache;
     @synchronized(self) {
         NSObject *obj = (NSObject *)object;
         if (!obj) return;
-        if (![self isConformsCodingProtocol:obj]) return;
+        if (![self isConformToCodingProtocol:obj]) return;
         MDEasyCacheConfig *config = self.config;
         config.key = key;
         config.object = object;
@@ -88,7 +87,7 @@ static MDEasyCache *easyCache;
     @synchronized(self) {
         NSObject *obj = (NSObject *)object;
         if (!obj) return;
-        if (![self isConformsCodingProtocol:obj]) return;
+        if (![self isConformToCodingProtocol:obj]) return;
         __block MDEasyCacheConfig *config = self.config;
         config.key = key;
         config.object = object;
@@ -153,7 +152,7 @@ static MDEasyCache *easyCache;
     return written;
 }
 
-- (BOOL)isConformsCodingProtocol:(NSObject *)obj
+- (BOOL)isConformToCodingProtocol:(NSObject *)obj
 {
     if ([obj conformsToProtocol:@protocol(NSCoding)] && [obj respondsToSelector:@selector(encodeWithCoder:)] && [obj respondsToSelector:@selector(initWithCoder:)]) {
         return YES;

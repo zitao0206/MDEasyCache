@@ -22,8 +22,14 @@ pod 'MDEasyCache'
 
 ## Author
 
-leon0206, zitao.li@quvideo.com
+leon0206, 634376133@qq.com
 
 ## License
 
 MDEasyCache is available under the MIT license. See the LICENSE file for more info.
+
+## Wiki
+https://github.com/Leon0206/MDEasyCache/wiki/MDEasyCache 
+或者
+https://blog.csdn.net/lizitao/article/details/80765123
+

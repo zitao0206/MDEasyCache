@@ -12,7 +12,6 @@
 - (instancetype)init
 {
     if (self = [super init]) {
-        _cacheType = MDEasyCacheTypeDefault;
         _pathURL = nil;
         _key = nil;
         _object = nil;
