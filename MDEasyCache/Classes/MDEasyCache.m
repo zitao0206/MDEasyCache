@@ -181,8 +181,8 @@ static MDEasyCache *easyCache;
 {
     id object = [self objectForKey:key];
     @synchronized(self) {
-        MDEasyCacheConfig *config = [self.cacheConfig objectForKey:key];
         if (object) {
+            MDEasyCacheConfig *config = [self.cacheConfig objectForKey:key];
             if (config) {
                 if (completion) {
                     completion(config);
@@ -197,6 +197,10 @@ static MDEasyCache *easyCache;
                         completion(config);
                     }
                 }
+            }
+        } else {
+            if (completion) {
+                completion(nil);
             }
         }
     }
