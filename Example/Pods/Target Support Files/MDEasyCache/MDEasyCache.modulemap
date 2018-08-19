@@ -1,0 +1,6 @@
+framework module MDEasyCache {
+  umbrella header "MDEasyCache-umbrella.h"
+
+  export *
+  module * { export * }
+}

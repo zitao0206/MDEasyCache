@@ -5,7 +5,5 @@ target 'MDEasyCache_Example' do
 
   target 'MDEasyCache_Tests' do
     inherit! :search_paths
-
-    pod 'FBSnapshotTestCase'
   end
 end
