@@ -9,9 +9,9 @@
 #import "MDEasyCacheConfig.h"
 
 //普通数据缓存路径
-#define MDDefaultCachePath      [((NSString *)NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES)[0]) stringByAppendingPathComponent:[NSString stringWithFormat:@"%@",MDEasyDefaultCachePrefix]]
+#define MDDefaultCachePath      [((NSString *)NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0]) stringByAppendingPathComponent:[NSString stringWithFormat:@"%@",MDEasyDefaultCachePrefix]]
 //图片缓存路径
-#define MDImageDiskCachePath     [((NSString *)NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES)[0]) stringByAppendingPathComponent:[NSString stringWithFormat:@"%@",MDEasyImageDiskCachePrefix]]
+#define MDImageDiskCachePath     [((NSString *)NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0]) stringByAppendingPathComponent:[NSString stringWithFormat:@"%@",MDEasyImageDiskCachePrefix]]
 //普通缓存文件路径
 #define MDDefaultCacheKeyPath(key)   [MDDefaultCachePath stringByAppendingPathComponent:key]
 //图片缓存文件路径
