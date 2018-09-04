@@ -190,7 +190,7 @@ static MDEasyCache *easyCache;
             } else {
                 MDEasyCacheConfig *config = [MDEasyCacheConfig new];
                 config.key = key;
-                config.object = [self objectFromDiskForKey:key];
+                config.object = object;
                 config.pathURL = [NSURL fileURLWithPath:MDDefaultCacheKeyPath(key)];
                 if (config.object) {
                     if (completion) {

@@ -9,6 +9,6 @@
 @interface MDEasyCacheConfig : NSObject
 @property (nonatomic, strong) NSURL *pathURL;
 @property (nonatomic, copy) NSString *key;
-@property (nonatomic, weak) id object;
+@property (nonatomic, strong) id object;
 @property (nonatomic, assign) BOOL isImage;
 @end
