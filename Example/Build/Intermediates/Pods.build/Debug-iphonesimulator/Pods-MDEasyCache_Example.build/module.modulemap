@@ -1,6 +1,0 @@
-framework module Pods_MDEasyCache_Example {
-  umbrella header "Pods-MDEasyCache_Example-umbrella.h"
-
-  export *
-  module * { export * }
-}

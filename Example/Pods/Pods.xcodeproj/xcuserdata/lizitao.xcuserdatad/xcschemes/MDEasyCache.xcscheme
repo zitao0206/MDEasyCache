@@ -14,10 +14,10 @@
             buildForArchiving = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "C94DA220F9F27BD2A195D9F9E202E83A"
+               BlueprintIdentifier = "21414E3349BE8745BFB7F317196FEDD4"
                BlueprintName = "MDEasyCache"
                ReferencedContainer = "container:Pods.xcodeproj"
-               BuildableName = "MDEasyCache.framework">
+               BuildableName = "libMDEasyCache.a">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
